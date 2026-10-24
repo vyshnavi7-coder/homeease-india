@@ -2,6 +2,7 @@ import express from "express";
 import http from "http";
 import cors from "cors";
 import path from "path";
+import fs from "fs";
 import dotenv from "dotenv";
 import compression from "compression";
 import { db } from "./database/db";
@@ -37,6 +38,21 @@ app.use("/uploads", express.static(uploadsPath, {
 
 // API Routes
 app.use("/api", apiRoutes);
+
+// Serve production frontend client if built
+const clientDistLocal = path.join(__dirname, "../../client/dist");
+const clientDistAlt = path.join(__dirname, "../../../client/dist");
+const clientDist = fs.existsSync(clientDistLocal) ? clientDistLocal : (fs.existsSync(clientDistAlt) ? clientDistAlt : null);
+
+if (clientDist) {
+  app.use(express.static(clientDist));
+  app.get("*", (req, res, next) => {
+    if (req.path.startsWith("/api") || req.path.startsWith("/uploads") || req.path.startsWith("/socket.io")) {
+      return next();
+    }
+    res.sendFile(path.join(clientDist, "index.html"));
+  });
+}
 
 // Health check
 app.get("/api/health", (_req, res) => {

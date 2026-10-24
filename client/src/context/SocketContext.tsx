@@ -18,7 +18,8 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const { user, workerProfile } = useAuth();
 
   useEffect(() => {
-    const s = io("/", {
+    const backendUrl = (import.meta as any).env?.VITE_API_URL || "/";
+    const s = io(backendUrl, {
       transports: ["websocket", "polling"],
     });
 
